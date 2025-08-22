@@ -1,4 +1,5 @@
 import React, { useState, useReducer } from "react";
+
 const initialState = {
   todo: [],
 };
@@ -10,19 +11,16 @@ const reducer = (state, action) => {
         ...state,
         todo: [...state.todo, action.payload],
       };
-
-    case "DELETE _Title":
+    case "DELETE_Title": // ✅ fixed typo (was "DELETE _Title")
       return {
         ...state,
-        todo: state.todo.filter((ele, idx) => {
-          return idx !== action.payload;
-        }),
+        todo: state.todo.filter((_, idx) => idx !== action.payload),
       };
     case "EDIT_TODO":
       return {
         ...state,
         todo: state.todo.map((ele, idx) =>
-          idx == action.payload.indx ? action.payload.edit : ele
+          idx === action.payload.indx ? action.payload.edit : ele
         ),
       };
     default:
@@ -40,10 +38,11 @@ export default function TestEditTodo() {
     const { name, value } = event.target;
     setDone({ [name]: value });
   };
-  const handleSubmit = (event) => {
-    // event.prevenDefault();
 
-    // dispatch({ type: "ADD_TODO", payload: Done });
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (Done.title.trim() === "") return;
+
     if (IsEditing) {
       dispatch({
         type: "EDIT_TODO",
@@ -56,57 +55,82 @@ export default function TestEditTodo() {
       setDone({ title: "" });
     }
   };
-  const handleEdit = (Index) => {
+
+  const handleEdit = (index) => {
     setIsEditing(true);
-    setCurrentIndex(Index);
-    let update = state.todo[Index];
-    setDone(update);
+    setCurrentIndex(index);
+    setDone(state.todo[index]);
   };
-  const handledelete = (Index) => {
-    dispatch({ type: "DELETE _Title", payload: Index });
+
+  const handleDelete = (index) => {
+    dispatch({ type: "DELETE_Title", payload: index });
   };
 
   return (
-    <div className="w-full h-[150px] bg-green-300 ">
-      <h1 className="font-bold text-center w-max bg-amber-300 m-auto rounded-4xl pl-2 pr-2">
-        Test Area Todo Edit
-      </h1>
-      <input
-        type="text"
-        name="title"
-        value={Done.title}
-        onChange={handleInput}
-        className="w-[200px] bg-blue-300 rounded-l mt-3 m-auto ml-[20%] outline-none px-1 "
-      />
-      <button
-        onClick={handleSubmit}
-        className="px-1 ml-2  bg-red-300 rounded-r"
-      >
-        {IsEditing ? "update " : "Submit"}
-      </button>
-      <ul>
-        {state.todo.length > 0 ? (
-          state.todo.map((ele, idx) => (
-            <li key={idx}>
-              {ele.title}
-              <button
-                onClick={() => handledelete(idx)}
-                className=" px-1 bg-cyan-200 mt-5 ml-0.5 rounded-r-2xl outline-none hover:bg-cyan-300 hover:text-red-400"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-400 via-blue-400 to-purple-500">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+        {/* Title */}
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-5">
+          📝 Todo Manager
+        </h1>
+
+        {/* Input + Button */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-2 mb-6"
+        >
+          <input
+            type="text"
+            name="title"
+            value={Done.title}
+            onChange={handleInput}
+            placeholder="Enter your task..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <button
+            type="submit"
+            className={`px-4 py-2 rounded-lg text-white font-medium transition ${
+              IsEditing
+                ? "bg-yellow-500 hover:bg-yellow-600"
+                : "bg-green-500 hover:bg-green-600"
+            }`}
+          >
+            {IsEditing ? "Update" : "Add"}
+          </button>
+        </form>
+
+        {/* Todo List */}
+        <ul className="space-y-3">
+          {state.todo.length > 0 ? (
+            state.todo.map((ele, idx) => (
+              <li
+                key={idx}
+                className="flex items-center justify-between bg-gray-100 p-3 rounded-lg shadow-sm hover:shadow-md transition"
               >
-                Delete
-              </button>
-              <button
-                onClick={() => handleEdit(idx)}
-                className=" px-1 bg-cyan-200 mt-5 ml-0.5 rounded-r-2xl outline-none hover:bg-cyan-300 hover:text-red-400"
-              >
-                Edit
-              </button>
+                <span className="text-gray-800">{ele.title}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(idx)}
+                    className="px-3 py-1 bg-yellow-400 text-white text-sm rounded-lg hover:bg-yellow-500 transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(idx)}
+                    className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="text-center text-gray-500">
+              No tasks yet. Add one above!
             </li>
-          ))
-        ) : (
-          <li className="text-center">No show TODO </li>
-        )}
-      </ul>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }
